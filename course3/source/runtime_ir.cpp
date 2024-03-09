@@ -136,10 +136,59 @@ namespace kuiper_infer {
     void RuntimeGraph::InitGraphParams(
             const std::map<std::string, pnnx::Parameter> &params,
             const std::shared_ptr<RuntimeOperator> &runtime_operator) {
-        for (const auto &[name, parameter]: params) {
+        for (const auto &[name, parameter]: params) { // 分别处理每个param
             const int type = parameter.type;
-            switch (type) {
-                case int(RuntimeParameterType::kParameterUnknown): {
+            switch (type) { // 按不同类别处理
+                // 0=null 1=b 2=i 3=f 4=s 5=ai 6=af 7=as 8=others
+                case int(RuntimeParameterType::kParameterUnknown) : {
+                    RuntimeParameter* runtime_parameter = new RuntimeParameter;
+                    runtime_operator->params.insert({ name, runtime_parameter });
+                    break;
+                }
+                case int(RuntimeParameterType::kParameterBool) : { // bool，需要赋值
+                    RuntimeParameterBool* runtime_parameter = new RuntimeParameterBool;
+                    runtime_parameter->value = parameter.b;
+                    runtime_operator->params.insert({ name, runtime_parameter });
+                    break;
+
+                }
+                case int(RuntimeParameterType::kParameterInt) : {
+                    RuntimeParameterInt* runtime_parameter = new RuntimeParameterInt;
+                    runtime_parameter->value = parameter.i;
+                    runtime_operator->params.insert({ name, runtime_parameter });
+                    break;
+                }
+                case int(RuntimeParameterType::kParameterFloat) : {
+                    RuntimeParameterFloat* runtime_parameter = new RuntimeParameterFloat;
+                    runtime_parameter->value = parameter.f;
+                    runtime_operator->params.insert({ name, runtime_parameter });
+                    break;
+                }
+                case int(RuntimeParameterType::kParameterString) : {
+                    RuntimeParameterString* runtime_parameter = new RuntimeParameterString;
+                    runtime_parameter->value = parameter.s;
+                    runtime_operator->params.insert({ name, runtime_parameter });
+                    break;
+                }
+                case int(RuntimeParameterType::kParameterIntArray) : {
+                    RuntimeParameterIntArray* runtime_parameter = new RuntimeParameterIntArray;
+                    runtime_parameter->value = parameter.ai;
+                    runtime_operator->params.insert({ name, runtime_parameter });
+                    break;
+                }
+                case int(RuntimeParameterType::kParameterFloatArray) : {
+                    RuntimeParameterFloatArray* runtime_parameter = new RuntimeParameterFloatArray;
+                    runtime_parameter->value = parameter.af;
+                    runtime_operator->params.insert({ name, runtime_parameter });
+                    break;
+                }
+                case int(RuntimeParameterType::kParameterStringArray) : {
+                    RuntimeParameterStringArray* runtime_parameter = new RuntimeParameterStringArray;
+                    runtime_parameter->value = parameter.as;
+                    runtime_operator->params.insert({ name, runtime_parameter });
+                    break;
+                }
+                /*case int(RuntimeParameterType::kParameterUnknown): {
                     RuntimeParameter *runtime_parameter = new RuntimeParameter;
                     runtime_operator->params.insert({name, runtime_parameter});
                     break;
@@ -194,7 +243,7 @@ namespace kuiper_infer {
                     runtime_parameter->value = parameter.as;
                     runtime_operator->params.insert({name, runtime_parameter});
                     break;
-                }
+                }*/ // 这部分是要自己写的
                 default: {
                     LOG(FATAL) << "Unknown parameter type: " << type;
                 }
